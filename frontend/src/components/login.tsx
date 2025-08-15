@@ -19,7 +19,7 @@ export function Login({ className, ...props }: React.ComponentProps<"div">) {
       const password = formData.get("password") as string;
 
       const result = await loginUser({ email, password });
-
+      localStorage.setItem("user", JSON.stringify(result.user));
       // Başarılı giriş sonrası yönlendirme
       window.location.href = "/a";
     } catch (error) {

@@ -3,20 +3,34 @@ import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { CopyIcon } from "@radix-ui/react-icons";
 import { Label } from "../components/ui//label";
-import { deleteCMM, saveCMM } from "@/api/cmm";
-import { generatePrefixFromRole, generateRandomString } from "@/lib/utils";
+import { useHandleSave } from "@/components/hooks/useCmm/useHandleSaveCmm";
+import { useHandleGenerate } from "@/components/hooks/useCmm/useHandleGenerateCmm";
+import { useHandleDeleteFromDB } from "@/components/hooks/useCmm/useHandleDeleteCmm";
+import { useHandleClear } from "@/components/hooks/useCmm/useHandleClearCmm";
+import { useHandleCopy } from "@/components/hooks/useCmm/useHandleCopyCmm";
 
 const InputIconButtonDemo = () => {
   const id = useId();
   const [currentCode, setCurrentCode] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
-  const [isLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [copyMessage, setCopyMessage] = useState("");
+
+  // Hook'u kullan
+  const { handleCopy } = useHandleCopy();
+  const { handleClear } = useHandleClear();
+  const { handleDeleteFromDB } = useHandleDeleteFromDB();
+  const { handleSave } = useHandleSave();
+  const { handleGenerate } = useHandleGenerate();
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
+    console.log("Raw localStorage data:", userData);
     if (userData) {
       const parsedUser = JSON.parse(userData);
+      console.log("Parsed user:", parsedUser);
+      console.log("User ID:", parsedUser.id);
       setCurrentUser(parsedUser);
     }
   }, []);
@@ -24,85 +38,6 @@ const InputIconButtonDemo = () => {
   useEffect(() => {
     console.log(currentUser);
   }, [currentUser]);
-
-  // CMM kod üret
-  const handleGenerate = () => {
-    if (!currentUser) {
-      alert("Lütfen giriş yapın!");
-      return;
-    }
-
-    // Frontend'de rastgele kod üret
-    const rolePrefix = generatePrefixFromRole(currentUser.role);
-    const randomPart = generateRandomString(4);
-    const newCode = `CMM-${rolePrefix}-${randomPart}`;
-
-    setCurrentCode(newCode);
-    console.log("Generated code (UI only):", newCode);
-  };
-
-  // Kodu database'e kaydet
-  const handleSave = async () => {
-    if (!currentCode) {
-      alert("Kaydedilecek kod yok!");
-      return;
-    }
-
-    if (!currentUser) {
-      alert("Giriş yapmanız gerekiyor!");
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      await saveCMM(currentCode, currentUser.id);
-      alert("Kod database'e kaydedildi!");
-    } catch (error) {
-      console.error("Save error:", error);
-      alert("Kod kaydedilemedi!");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // Kodu kopyala
-  const handleCopy = () => {
-    if (!currentCode) {
-      alert("Kopyalanacak kod yok!");
-      return;
-    }
-
-    navigator.clipboard.writeText(currentCode);
-    alert("Kod kopyalandı!");
-  };
-
-  //input temizle
-  const handleClear = () => {
-    setCurrentCode(""); // Input'u temizle
-    alert("Input temizlendi!");
-  };
-
-  // Database'den kodu silme
-  const handleDeleteFromDB = async () => {
-    if (!currentCode) {
-      alert("Silinecek kod yok!");
-      return;
-    }
-
-    if (!currentUser) {
-      alert("Giriş yapmanız gerekiyor!");
-      return;
-    }
-
-    try {
-      await deleteCMM(currentCode, currentUser.id);
-      setCurrentCode("");
-      alert("Kod database'den silindi!");
-    } catch (error) {
-      console.error("Delete error:", error);
-      alert("Bu kodu silme yetkiniz yok veya kod bulunamadı!");
-    }
-  };
 
   return (
     <>
@@ -118,16 +53,27 @@ const InputIconButtonDemo = () => {
             className="-me-px rounded-e-none shadow-none focus-visible:z-1"
           />
 
-          <Button onClick={handleCopy} variant="outline" size="icon" className="rounded-s-none" disabled={!currentCode}>
+          <Button
+            onClick={() => handleCopy(currentCode, setCopyMessage)}
+            variant="outline"
+            size="icon"
+            className="rounded-s-none"
+            disabled={!currentCode}
+          >
             <CopyIcon />
             <div className="sr-only">Copy</div>
           </Button>
+          {copyMessage && (
+            <div className="absolute -top-8 right-0 bg-black text-white px-2 py-1 rounded text-sm z-10">
+              {copyMessage}
+            </div>
+          )}
         </div>
 
         <Button
           variant="outline"
           className="justify-center flex flex-col items-center w-100 mt-10"
-          onClick={handleGenerate}
+          onClick={() => handleGenerate(currentUser, setCurrentCode)}
           disabled={isLoading || !currentUser}
         >
           Üret
@@ -136,7 +82,7 @@ const InputIconButtonDemo = () => {
         <Button
           variant="outline"
           className="justify-center flex flex-col items-center w-100 mt-10"
-          onClick={handleSave}
+          onClick={() => handleSave(currentCode, currentUser, setIsSaving)}
           disabled={isLoading || !currentUser}
         >
           {isSaving ? "Kaydediliyor" : "Kaydet"}
@@ -145,7 +91,8 @@ const InputIconButtonDemo = () => {
         <Button
           variant="outline"
           className="justify-center flex flex-col items-center w-100 mt-10"
-          onClick={handleClear}
+          onClick={() => handleClear(setCurrentCode)}
+          disabled={!currentCode}
         >
           Kodu Temizle
         </Button>
@@ -153,7 +100,7 @@ const InputIconButtonDemo = () => {
         <Button
           variant="outline"
           className="bg-red-500 text-white justify-center flex flex-col items-center w-100 mt-10"
-          onClick={handleDeleteFromDB}
+          onClick={() => handleDeleteFromDB(currentCode, currentUser, setCurrentCode)}
           disabled={!currentCode}
         >
           Database'den Sil
