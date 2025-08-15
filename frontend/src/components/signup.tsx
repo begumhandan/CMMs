@@ -3,38 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FormEvent, useState } from "react";
-import { registerUser } from "@/api/user";
+import { useState } from "react";
+import { useHandleSubmit } from "@/components/hooks/useSignUp/useHandleSubmit";
 
 export function Signup({ className, ...props }: React.ComponentProps<"div">) {
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      // Form verilerini işle
-      const formData = new FormData(e.currentTarget);
-      const email = formData.get("email") as string;
-      const password = formData.get("password") as string;
-      const role = formData.get("role") as string;
-
-      console.log("Signup data:", { email, password, role });
-
-      const result = await registerUser({ email, password, role });
-
-      console.log("Signup success:", result);
-      alert("Kayıt başarılı! Giriş yapabilirsiniz.");
-
-      window.location.href = "/";
-    } catch (error) {
-      console.error("Signup error:", error);
-      alert("Kayıt başarısız! Bu email zaten kullanılıyor olabilir.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { handleSubmit } = useHandleSubmit();
 
   return (
     <div className={cn("p-[10px] md:p-[2rem] max-w-sm flex flex-col gap-6", className)} {...props}>
@@ -43,7 +18,7 @@ export function Signup({ className, ...props }: React.ComponentProps<"div">) {
           <CardTitle className="text-xl">Sign Up</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={(e) => handleSubmit(e, setIsLoading)}>
             <div className="grid gap-6">
               <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>

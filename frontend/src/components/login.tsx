@@ -3,32 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FormEvent, useState } from "react";
-import { loginUser } from "@/api/user";
+import { FormEvent, use, useState } from "react";
+import { useHandleSubmit } from "@/components/hooks/useLogin/useHandleSubmit";
 
 export function Login({ className, ...props }: React.ComponentProps<"div">) {
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const formData = new FormData(e.currentTarget);
-      const email = formData.get("email") as string;
-      const password = formData.get("password") as string;
-
-      const result = await loginUser({ email, password });
-      localStorage.setItem("user", JSON.stringify(result.user));
-      // Başarılı giriş sonrası yönlendirme
-      window.location.href = "/a";
-    } catch (error) {
-      console.error("Login error:", error);
-      alert("Giriş başarısız! Email veya şifre hatalı.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { handleSubmit } = useHandleSubmit();
 
   return (
     <div className={cn("p-[10px] md:p-[2rem] max-w-sm flex flex-col gap-6", className)} {...props}>
@@ -37,7 +18,7 @@ export function Login({ className, ...props }: React.ComponentProps<"div">) {
           <CardTitle className="text-xl">Kullanıcı Giriş</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={(e) => handleSubmit(e, setIsLoading)}>
             <div className="grid gap-6">
               <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>

@@ -1,29 +1,14 @@
-import { useNavigate, useRouterState } from "@tanstack/react-router";
 import type { FC, PropsWithChildren } from "react";
+import { useNavigatePages } from "../hooks/UseNavigatePages";
+import { useGoNext } from "../hooks/UseGoNext";
+import { useGoPrev } from "../hooks/UseGoPrev";
 
 export const Header: FC<PropsWithChildren> = () => {
-  const navigate = useNavigate();
-  const { location } = useRouterState();
-
-  const pages = ["/", "/a", "/Cmm", "/elektriksel_test"];
-
-  const currentPath = location.pathname;
-  const currentIndex = pages.indexOf(currentPath);
-
-  const goPrev = () => {
-    if (currentIndex > 0) {
-      navigate({ to: pages[currentIndex - 1] });
-    }
-  };
-  const goNext = () => {
-    if (currentPath == "/") return;
-    if (currentIndex < pages.length - 1) {
-      navigate({ to: pages[currentIndex + 1] });
-    }
-  };
-
+  const goNext = useGoNext();
+  const goPrev = useGoPrev();
+  const { currentIndex, pages } = useNavigatePages();
   return (
-    <div className="grid grid-cols-2 gap-2   min-h-11 ">
+    <div className="grid grid-cols-2 gap-2 min-h-11 ">
       {/* Left Arrow */}
       <button
         onClick={goPrev}
