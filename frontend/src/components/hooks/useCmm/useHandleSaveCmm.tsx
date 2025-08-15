@@ -1,7 +1,6 @@
 import { saveCMM } from "@/api/cmm";
 
 export const useHandleSave = () => {
-  // Kodu database'e kaydet
   const handleSave = async (currentCode: string, currentUser: any, setIsSaving: (saving: boolean) => void) => {
     if (!currentCode) {
       alert("Kaydedilecek kod yok!");

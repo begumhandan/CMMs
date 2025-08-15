@@ -12,7 +12,9 @@ import { useHandleCopy } from "@/components/hooks/useCmm/useHandleCopyCmm";
 const InputIconButtonDemo = () => {
   const id = useId();
   const [currentCode, setCurrentCode] = useState("");
+  const [partCode, setPartCode] = useState("");
   const [currentUser, setCurrentUser] = useState<any>(null);
+
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [copyMessage, setCopyMessage] = useState("");
@@ -24,6 +26,20 @@ const InputIconButtonDemo = () => {
   const { handleSave } = useHandleSave();
   const { handleGenerate } = useHandleGenerate();
 
+  const getFullCode = () => {
+    if (!currentCode || currentCode.trim() === "") {
+      return "";
+    }
+    return `CMM-${currentCode}`;
+  };
+  const handleSaveClick = () => {
+    const fullCode = getFullCode();
+    if (!fullCode) {
+      alert("Kaydedilecek kod yok!");
+      return;
+    }
+    handleSave(fullCode, currentUser, setIsSaving);
+  };
   useEffect(() => {
     const userData = localStorage.getItem("user");
     console.log("Raw localStorage data:", userData);
@@ -41,20 +57,23 @@ const InputIconButtonDemo = () => {
 
   return (
     <>
-      <Label className="text-left mb-2">CMM {currentUser && `(${currentUser.role})`}</Label>
+      <Label className="text-left mb-2">CMM / {currentUser && `(${currentUser.role})`}</Label>
       <div className="justify-center flex flex-col items-center w-full">
         <div className="flex rounded-md shadow-xs">
+          <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+            CMM-
+          </span>
           <Input
             id={id}
             type="text"
             value={currentCode}
             onChange={(e) => setCurrentCode(e.target.value)}
-            placeholder="CMM - _ _ _ _ _ _ _ _ _ _"
+            placeholder="AX2508AD001"
             className="-me-px rounded-e-none shadow-none focus-visible:z-1"
           />
 
           <Button
-            onClick={() => handleCopy(currentCode, setCopyMessage)}
+            onClick={() => handleCopy(getFullCode(), setCopyMessage)}
             variant="outline"
             size="icon"
             className="rounded-s-none"
@@ -73,7 +92,7 @@ const InputIconButtonDemo = () => {
         <Button
           variant="outline"
           className="justify-center flex flex-col items-center w-100 mt-10"
-          onClick={() => handleGenerate(currentUser, setCurrentCode)}
+          onClick={() => handleGenerate(currentUser, setCurrentCode, partCode)}
           disabled={isLoading || !currentUser}
         >
           Üret
@@ -82,8 +101,8 @@ const InputIconButtonDemo = () => {
         <Button
           variant="outline"
           className="justify-center flex flex-col items-center w-100 mt-10"
-          onClick={() => handleSave(currentCode, currentUser, setIsSaving)}
-          disabled={isLoading || !currentUser}
+          onClick={handleSaveClick}
+          disabled={isLoading || !currentUser || !currentCode}
         >
           {isSaving ? "Kaydediliyor" : "Kaydet"}
         </Button>
@@ -100,7 +119,7 @@ const InputIconButtonDemo = () => {
         <Button
           variant="outline"
           className="bg-red-500 text-white justify-center flex flex-col items-center w-100 mt-10"
-          onClick={() => handleDeleteFromDB(currentCode, currentUser, setCurrentCode)}
+          onClick={() => handleDeleteFromDB(getFullCode(), currentUser, setCurrentCode)}
           disabled={!currentCode}
         >
           Database'den Sil

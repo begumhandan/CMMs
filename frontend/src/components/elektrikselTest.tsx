@@ -13,6 +13,7 @@ const InputIconButtonDemo = () => {
   const id = useId();
   const [currentCode, setCurrentCode] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [partCode, setPartCode] = useState("");
   const [isLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [copyMessage, setCopyMessage] = useState("");
@@ -22,6 +23,21 @@ const InputIconButtonDemo = () => {
   const { handleCopy } = useHandleCopy();
   const { handleClear } = useHandleClear();
   const { handleDeleteFromDB } = useHandleDeleteFromDB();
+
+  const getFullCode = () => {
+    if (!currentCode || currentCode.trim() === "") {
+      return "";
+    }
+    return `ET-${currentCode}`;
+  };
+  const handleSaveClick = () => {
+    const fullCode = getFullCode();
+    if (!fullCode) {
+      alert("Kaydedilecek kod yok!");
+      return;
+    }
+    handleSave(fullCode, currentUser, setIsSaving);
+  };
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -37,18 +53,20 @@ const InputIconButtonDemo = () => {
 
   return (
     <>
-      <Label className="text-left mb-2">Elektriksel Test {currentUser && `(${currentUser.role})`}</Label>
+      <Label className="text-left mb-2">Elektriksel Test / {currentUser && `(${currentUser.role})`}</Label>
       <div className="justify-center flex flex-col items-center w-full">
         <div className="flex rounded-md shadow-xs">
+          <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+            ET-
+          </span>
           <Input
             id={id}
             type="text"
             value={currentCode}
             onChange={(e) => setCurrentCode(e.target.value)}
-            placeholder="ET - _ _ _ _ _ _ _ _ _ _"
+            placeholder="AX2508AD001"
             className="-me-px rounded-e-none shadow-none focus-visible:z-1"
           />
-
           <Button
             onClick={() => handleCopy(currentCode, setCopyMessage)}
             variant="outline"
@@ -64,7 +82,7 @@ const InputIconButtonDemo = () => {
         <Button
           variant="outline"
           className="justify-center flex flex-col items-center w-100 mt-10"
-          onClick={() => handleGenerate(currentUser, setCurrentCode)}
+          onClick={() => handleGenerate(currentUser, setCurrentCode, partCode)}
           disabled={isLoading || !currentUser}
         >
           Üret
@@ -73,7 +91,7 @@ const InputIconButtonDemo = () => {
         <Button
           variant="outline"
           className="justify-center flex flex-col items-center w-100 mt-10"
-          onClick={() => handleSave(currentCode, currentUser, setIsSaving)}
+          onClick={handleSaveClick}
           disabled={isLoading || !currentUser}
         >
           {isSaving ? "Kaydediliyor" : "Kaydet"}
